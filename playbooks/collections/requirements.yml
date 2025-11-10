@@ -1,4 +1,4 @@
-collections: []
+collections: 
   # - name: ansible.builtin
-  # - name: community.general
-  # - name: ansible.posix
+  - name: community.general
+  - name: ansible.posix
