@@ -1,4 +1,4 @@
 collections: 
   # - name: ansible.builtin
   # - name: community.general
-  - name: ansible.posix
+  - ansible.posix
