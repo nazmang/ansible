@@ -1,5 +1,8 @@
 ---
-- name: geerlingguy.docker
-  src: https://github.com/geerlingguy/ansible-role-docker.git
-  version: master  # or specify a tag or commit hash instead of 'master'
-  scm: git
+collections: []
+
+roles:
+  - name: geerlingguy.docker
+    src: https://github.com/geerlingguy/ansible-role-docker.git
+    version: master # or specify a tag or commit hash instead of 'master'
+    scm: git
