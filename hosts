@@ -22,7 +22,7 @@ rock0[3:7].comintern.local
 ubnt01.comintern.local
 
 [k8s_cpl]
-rock04.comintern.local ansible_python_interpreter=/usr/bin/python3.9
+rock04.comintern.local ansible_python_interpreter=/usr/libexec/platform-python
 rock01.comintern.local
 
 [k8s_wkr]
