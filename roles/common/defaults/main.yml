@@ -1,0 +1,26 @@
+---
+necessary_packages:
+  - mc
+  - python3
+  - htop
+  - iotop
+  # - nfs-common
+  - net-tools
+  - curl
+  # - network-manager
+  - jq
+  - btop
+nfsmounts:
+  - { path: "/home/pi", src: "nas:/mnt/big_pool/homedirs/pi" }
+  # - { path: "/data", src: "nas:/mnt/trash_pool/misc" }
+user_data:
+  user1:
+    name: user1
+    groups: root
+    password: "$6$H011yShi....."
+    ssh_keys:
+      private: |
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEpAIBAAKCAQEA...
+        -----END RSA PRIVATE KEY-----
+      public: "ssh-rsa AAAAB3Nz... user1@example.com"

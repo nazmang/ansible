@@ -1,0 +1,7 @@
+---
+# defaults file for role.mount_s3fs
+s3_access_key: "ABCDEFGH...." # Your S3-compatible storage access key.
+s3_secret_key: "abcdsefgh" # Your S3-compatible storage secret key.
+s3_endpoint: "https://gateway.storjshare.io" # The URL of your S3-compatible storage.
+bucket_name: "data" # The name of the bucket to mount.
+mount_point: "/opt/data"# The local directory where the bucket will be mounted.

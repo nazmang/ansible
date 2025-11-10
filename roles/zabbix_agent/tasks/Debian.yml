@@ -1,0 +1,43 @@
+---
+# Tasks specific for Debian systems
+- name: Install gpg key
+  apt_key:    
+    url: http://repo.zabbix.com/zabbix-official-repo.key
+  tags: 
+    - zabbix-agent        
+
+- name: Debian | Installing Zabbix repository Debian
+  apt_repository:
+    repo: "deb http://repo.zabbix.com/zabbix/{{ zabbix_agent_version_major_major }}/debian/ {{ ansible_distribution_release }} main"
+    state: present
+  when:
+    - ansible_distribution == "Debian"
+  tags: 
+    - zabbix-agent      
+
+
+- name: Ubuntu | Installing Zabbix repository Ubuntu
+  apt_repository:
+    repo: "deb http://repo.zabbix.com/zabbix/{{ zabbix_agent_version_major }}/ubuntu/ {{ ansible_distribution_release }} main"
+    state: present
+  when:
+    - ansible_distribution == "Ubuntu"  
+  tags: 
+    - zabbix-agent          
+
+- name: Install  Zabbix agent package  
+  apt:
+    pkg: "zabbix-agent"
+    state: present
+    update_cache: yes
+    cache_valid_time: 0
+    force_apt_get: yes
+    install_recommends: yes  
+  when: 
+    - ansible_distribution in ['Ubuntu', 'Debian']
+  register: zabbix_agent_package_installed
+  until: zabbix_agent_package_installed is succeeded
+  tags: 
+    - zabbix-agent
+
+

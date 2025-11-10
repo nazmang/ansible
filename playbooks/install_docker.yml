@@ -1,0 +1,19 @@
+- hosts: docker
+  pre_tasks:
+
+    - name: Get DEB architecture
+      shell: dpkg --print-architecture
+      register: deb_architecture      
+
+    - name: Set Docker variables
+      set_fact:
+        docker_edition: 'ce'
+        docker_package_state: latest
+        docker_service_enabled: true
+        docker_service_manage: false
+        docker_apt_release_channel: stable
+        docker_apt_arch: "{{ deb_architecture.stdout }}"
+      
+  roles:
+    - { role: geerlingguy.docker, tags: docker }
+

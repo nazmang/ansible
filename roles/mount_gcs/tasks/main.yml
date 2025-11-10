@@ -1,0 +1,109 @@
+---
+# Install gcsfuse
+- block:
+  - name: Add Google Cloud public key
+    apt_key:
+      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+      state: present
+
+  - name: Add gcsfuse repository
+    apt_repository:
+      repo: "deb http://packages.cloud.google.com/apt gcsfuse-{{ ansible_distribution_release }} main"
+      state: present
+      filename: gcsfuse    
+
+  - name: Update package list
+    apt:
+      update_cache: yes
+
+  - name: Install gcsfuse
+    apt:
+      name: gcsfuse
+      state: present
+  when: ansible_facts['distribution'] in ['Debian', 'Ubuntu']
+  rescue:
+    - name: Can't install package
+      fail:
+        msg: "Can't install 'gcsfuse' package. Aborting..."
+
+- block:
+  - name: Add Google Cloud GPG key for yum
+    rpm_key:
+      state: present
+      key: https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+
+  - name: Add gcsfuse repository
+    yum_repository:
+      name: gcsfuse
+      description: Google Cloud Storage FUSE repository
+      baseurl: "https://packages.cloud.google.com/yum/repos/gcsfuse-el7-x86_64"
+      enabled: 1
+      gpgcheck: 1
+      repo_gpgcheck: 0
+      gpgkey: https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+
+  - name: Install gcsfuse
+    yum:
+      name: gcsfuse
+      state: present
+
+  when: ansible_os_family == 'RedHat'
+  rescue:
+    - name: Can't install package
+      fail:
+        msg: "Can't install 'gcsfuse' package. Aborting..."
+
+# Decode and copy service account key
+- name: Decode base64-encoded service account key file
+  set_fact:
+    service_account_key_base64: "{{ lookup('file', role_path + '/files/service-account-key.json') | b64decode }}"
+
+- name: Create directory for service account key
+  file:
+    path: "{{ service_account_key | dirname }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0700
+
+- name: Copy service account key
+  copy:
+    content: "{{ service_account_key_base64 }}"
+    dest: "{{ service_account_key }}"
+    owner: root
+    group: root
+    mode: 0600
+
+# Create mount point
+- name: Create mount point
+  file:
+    path: "{{ mount_point }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+# Remove existing entries in /etc/fstab
+- name: Remove existing GCS bucket entries from /etc/fstab
+  lineinfile:
+    path: /etc/fstab
+    regexp: '^{{ bucket_name }} .* gcsfuse .*'
+    state: absent
+  tags:
+    - fstab_entry
+
+# Mount the bucket
+- name: Mount GCS bucket
+  command: >
+    gcsfuse -o allow_other --key-file={{ service_account_key }} {{ bucket_name }} {{ mount_point }}
+  register: mount_result
+  changed_when: "'File system mounted' in mount_result.stdout"
+
+# Add to fstab for persistence
+- name: Add mount to fstab
+  lineinfile:
+    path: /etc/fstab
+    line: "{{ bucket_name }} {{ mount_point }} gcsfuse rw,_netdev,key_file={{ service_account_key }},allow_other,file_mode=777,dir_mode=777,nofail,x-systemd.device-timeout=30s 0 0"
+    state: present
+  tags:
+    - fstab_entry

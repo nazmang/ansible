@@ -1,0 +1,6 @@
+- hosts: all
+  gather_facts: true
+  vars_files:
+    - ../vaults/vault.yml # Include the vault-encrypted file
+  roles:
+    - { role: common, tags: common }

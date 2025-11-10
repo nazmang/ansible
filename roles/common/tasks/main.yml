@@ -1,0 +1,125 @@
+---
+# - name: Include OS-specific variables
+#   include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Include OS-specific tasks
+  include_tasks: "{{ ansible_os_family }}.yml"
+
+- name: Generate random password if not defined
+  set_fact:
+    user_password: "{{ item.value.password | default(lookup('password', '/dev/null length=20 chars=ascii_letters,digits'), true) }}"
+  loop: "{{ user_data | dict2items }}"
+  when: item.value.name is defined
+  no_log: true # Prevent password from being logged
+
+- name: Create users
+  ansible.builtin.user:
+    name: "{{ item.value.name }}"
+    groups: "{{ item.value.groups }}"
+    password: "{{ user_password | password_hash('sha512') }}"
+    shell: /bin/bash
+    create_home: yes
+  loop: "{{ user_data | dict2items }}"
+  when: item.value.name is defined
+  no_log: true
+
+- name: Add user to sudo or wheel group based on distribution
+  ansible.builtin.user:
+    name: "{{ item.value.name }}"
+    groups: "{{ 'sudo' if ansible_facts['distribution'] in ['Debian', 'Ubuntu'] else 'wheel' }}"
+    append: yes
+  loop: "{{ user_data | dict2items }}"
+  when:
+    - item.value.name is defined
+    - item.value.sudoer | default(false) | bool
+  no_log: true
+
+- name: Ensure .ssh directory exists
+  ansible.builtin.file:
+    path: "/home/{{ item.value.name }}/.ssh"
+    state: directory
+    owner: "{{ item.value.name }}"
+    group: "{{ item.value.name }}"
+    mode: "0700"
+  loop: "{{ user_data | dict2items }}"
+  when: item.value.name is defined
+  tags:
+    - ssh_key
+  no_log: true
+
+- name: Add private key
+  ansible.builtin.copy:
+    content: "{{ item.value.ssh_keys.private }}"
+    dest: "/home/{{ item.value.name }}/.ssh/id_rsa"
+    owner: "{{ item.value.name }}"
+    group: "{{ item.value.name }}"
+    mode: "0600"
+    force: true
+  loop: "{{ user_data | dict2items }}"
+  when: item.value.ssh_keys.private is defined
+  tags:
+    - ssh_key
+  no_log: true
+
+- name: Add public key
+  ansible.builtin.copy:
+    content: "{{ item.value.ssh_keys.public }}"
+    dest: "/home/{{ item.value.name }}/.ssh/id_rsa.pub"
+    owner: "{{ item.value.name }}"
+    group: "{{ item.value.name }}"
+    mode: "0644"
+    force: true
+  loop: "{{ user_data | dict2items }}"
+  when: item.value.ssh_keys.public is defined
+  tags:
+    - ssh_key
+  no_log: true
+
+- name: Add public key to user's authorized_keys file
+  ansible.builtin.authorized_key:
+    user: "{{ item.value.name }}"
+    key: "{{ item.value.ssh_keys.public }}"
+    state: present
+  loop: "{{ user_data | dict2items }}"
+  when:
+    - item.value.ssh_keys.public is defined
+    # - item.value.ssh_keys.private is not defined
+  tags:
+    - ssh_key
+  no_log: true
+
+- name: Disable logo
+  ansible.builtin.file:
+    path: /etc/profile.d/logo.sh
+    state: absent
+  tags:
+    - common
+
+- name: Copy .bashrc
+  ansible.builtin.copy:
+    src: .bashrc
+    dest: /root/.bashrc
+    backup: yes
+  tags:
+    - common
+
+- name: Install necessary packages
+  package:
+    name: "{{ item.name | default(item) }}"
+    state: "{{ item.state | default('present') }}"
+  with_items: "{{ necessary_packages }}"
+  tags: install_packages
+
+- name: Mount NFS shares
+  mount:
+    fstype: nfs
+    opts: defaults,_netdev,nofail
+    dump: 0
+    passno: 0
+    state: mounted
+    src: "{{ item.src }}"
+    path: "{{ item.path }}"
+  with_items: "{{nfsmounts}}"
+  tags:
+    - mounts
+  ignore_errors: true

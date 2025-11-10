@@ -1,0 +1,46 @@
+[docker:children]
+hetzner
+docker_wkr
+docker_mgr
+
+[docker_mgr]
+ubnt01.comintern.local
+npi01.comintern.local
+
+[docker_wkr]
+rock0[2:3].comintern.local
+
+[raspberry]
+npi01.comintern.local
+
+[windows]
+psvc.duckdns.org
+pc-sun ansible_host=192.168.88.120 ansible_winrm_transport=credssp ansible_port=5986
+
+[vmware]
+rock0[3:7].comintern.local
+ubnt01.comintern.local
+
+[k8s_cpl]
+rock04.comintern.local
+rock01.comintern.local
+
+[k8s_wkr]
+rock0[5:7].comintern.local
+
+[hetzner]
+cx32-ubuntu-02 ansible_host=10.163.1.15
+cx22-ubuntu-01 ansible_host=10.163.1.5
+
+[qemu]
+rock0[1:2].comintern.local
+
+[nas]
+nas.comintern.local ansible_host=192.168.2.56
+
+[laptop]
+laptop-A35R.comintern.local ansible_host=192.168.88.254 ansible_user=nazman
+
+[jenkins-agent]
+rock04.comintern.local
+rock01.comintern.local

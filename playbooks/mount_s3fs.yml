@@ -1,0 +1,12 @@
+---
+- hosts: all
+  become: true
+  vars_files:
+    - ../vaults/vault.yml # Include the vault-encrypted file
+  pre_tasks:
+    - name: Set necessary ansible_facts
+      set_fact:
+        bucket_name: "data-09032025" 
+        mount_point: "/data"# The local directory where the bucket will be mounted.
+  roles:
+    - role.mount_s3fs

@@ -1,0 +1,5 @@
+---
+# defaults file for mount_gcs
+bucket_name: "bucket-20241911"
+mount_point: "/data_gb"
+service_account_key: "/etc/gcs/service-account-key.json"

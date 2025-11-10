@@ -1,0 +1,35 @@
+---
+# defaults file for zabbix_agent
+zabbix_agent_version_major: '6.4' 
+zabbix_agent_version_minor: '19'
+zabbix_agent_version_full: "{{ zabbix_agent_version_major }}.{{ zabbix_agent_version_minor }}"
+
+
+zabbix_agent_repo_yum:
+  - name: zabbix
+    description: Zabbix Official Repository - $basearch
+    baseurl: http://repo.zabbix.com/zabbix/{{ zabbix_agent_version_major }}/rhel/{{ ansible_distribution_major_version }}/$basearch/
+    priority: 1
+    gpgcheck: 0
+    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-ZABBIX
+    state: present
+
+zabbix_agent_package: zabbix-agent
+zabbix_sender_package: zabbix-sender
+zabbix_get_package: zabbix-get    
+
+zabbix_agent_win_arch: "i386"
+zabbix_agent_win_package: zabbix_agent-{{ zabbix_agent_version_full }}-windows-{{ zabbix_agent_win_arch }}.zip
+zabbix_agent_win_download_url: https://cdn.zabbix.com/zabbix/binaries/stable
+zabbix_agent_win_download_link: "{{ zabbix_agent_win_download_url }}/{{ zabbix_agent_version_major }}/{{ zabbix_agent_version_full }}/{{ zabbix_agent_win_package }}"
+zabbix_agent_win_install_dir: 'C:\Program Files\Zabbix Agent 2'
+zabbix_agent_win_log_file: '{{ zabbix_agent_win_install_dir }}\zabbix_agentd.log'
+zabbix_agent_win_svc_recovery: true # recovers Zabbix Agent Win service
+zabbix_win_agent_service: "Zabbix Agent"
+
+zabbix_config_server: ""   
+zabbix_config_listen_port: '10050' 
+zabbix_config_listen_address: '0.0.0.0'
+zabbix_config_server_active: ""
+zabbix_config_hostname: "{{ inventory_hostname }}"
+zabbix_config_log_file: "/var/log/zabbix-agent/zabbix_agentd.log"

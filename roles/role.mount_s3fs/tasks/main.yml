@@ -1,0 +1,40 @@
+---
+# tasks file for role.mount_s3fs
+- name: Install dependencies (s3fs-fuse)
+  package:
+    name: s3fs
+    state: present
+  become: true
+  when: ansible_os_family in ['Debian', 'RedHat']
+
+- name: Create credentials file
+  copy:
+    dest: "/etc/passwd-s3fs"
+    content: "{{ s3_access_key }}:{{ s3_secret_key }}"
+    mode: "0600"
+  become: true
+  no_log: true
+
+- name: Create mount point
+  file:
+    path: "{{ mount_point }}"
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: Check if fstab entry exists
+  shell: "grep -q '{{ bucket_name }}' /etc/fstab && echo 'exists' || echo 'not_exists'"
+  register: fstab_check
+  changed_when: false
+
+- name: Add or update fstab entry
+  lineinfile:
+    path: /etc/fstab
+    line: "s3fs#{{ bucket_name }} {{ mount_point }} fuse _netdev,nofail,allow_other,use_path_request_style,url={{ s3_endpoint }} 0 0"
+    state: present
+    regexp: "^s3fs#{{ bucket_name }}"
+  become: true
+
+- name: Mount S3 storage
+  command: "mount -a"
+  become: true

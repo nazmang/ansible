@@ -1,0 +1,15 @@
+# Debian specific packages
+---
+- name: Install Java OpenJDK 21 on Debian family
+  ansible.builtin.apt:
+    name: openjdk-21-jdk
+    state: present
+    update_cache: yes
+  when:
+    - "'jenkins-agent' in group_names"
+
+- name: Install NFS tools on Debian family
+  ansible.builtin.apt:
+    name: nfs-common
+    state: present
+    update_cache: yes

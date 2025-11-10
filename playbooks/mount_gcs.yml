@@ -1,0 +1,9 @@
+---
+- hosts: all
+  become: true
+  pre_tasks:
+    - name: Set necessary ansible_facts
+      set_fact:
+        bucket_name: "bucket-20241203"
+  roles:
+    - mount_gcs

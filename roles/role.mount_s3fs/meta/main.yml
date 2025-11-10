@@ -1,0 +1,20 @@
+galaxy_info:
+  author: Nazman Gena
+  description: Installs and mounts S3-compatible storage on Linux VMs.
+  license: MIT
+  min_ansible_version: "2.9"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - all
+    - name: CentOS
+      versions:
+        - all
+    - name: RedHat
+      versions:
+        - all
+
+dependencies: []

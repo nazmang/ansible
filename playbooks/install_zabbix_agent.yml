@@ -1,0 +1,10 @@
+---
+- hosts: all
+  pre_tasks:
+    - name: Set Zabbix hostname without domain for vmware group
+      set_fact:
+        zabbix_config_hostname: "{{ inventory_hostname | regex_replace('\\.' ~ domain_name ~ '$', '') }}"
+      when: "'vmware' in group_names"
+
+  roles:
+    - { role: zabbix_agent }
